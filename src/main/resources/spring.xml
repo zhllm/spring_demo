@@ -1,21 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:task="http://www.springframework.org/schema/task"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context.xsd">
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
     <!-- bean definitions here -->
-    <!-- 开启自动化注入-->
-    <context:annotation-config />
 
-    <bean id="userDao" class="com.be.self.dao.UserDao" />
-    <bean id="userService" class="com.be.self.service.UserService"></bean>
-    <bean id="userDaoIml01" class="com.be.self.dao.UserDaoIml01" />
-    <bean id="userDaoIml02" class="com.be.self.dao.UserDaoIml02" />
-    <bean id="accountDao" class="com.be.self.dao.AccountDao" />
-    <bean id="accountService" class="com.be.self.service.AccountService" />
+    <context:component-scan base-package="com.be.self" />
 
+    <!-- <aop:aspectj-autoproxy />-->
+    <aop:config>
+        <!--切面-->
+        <aop:aspect ref="logCut02">
+            <aop:pointcut id="cut" expression="execution(* com.be.self.service..*.*(..))"/>
+            <!--配置通知  前置通知 -->
+            <aop:before method="before" pointcut-ref="cut"/>
+            <aop:after-returning method="afterReturn" pointcut-ref="cut" />
+            <aop:after-throwing method="afterThrow" pointcut-ref="cut" />
+            <aop:around method="around" pointcut-ref="cut" />
+            <aop:after method="after" pointcut-ref="cut" />
+        </aop:aspect>
+    </aop:config>
+
+<!--    <task:scheduled-tasks>-->
+<!--        <task:scheduled ref="taskJob" method="job1" cron="0/2 * * * * ?"/>-->
+<!--        <task:scheduled ref="taskJob" method="job2" cron="0/5 * * * * ?"/>-->
+<!--    </task:scheduled-tasks>-->
+    <context:property-placeholder location="jdbc.properties" />
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.drive}" />
+        <property name="jdbcUrl" value="${jdbc.url}" />
+        <property name="user" value="${jdbc.user}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+
+    <task:annotation-driven />
 
 </beans>
